@@ -80,17 +80,17 @@ fontes:
     usar_foto: false
 
   - nome: g1 Rio Preto e Araçatuba
-    tipo: rss
-    url: https://g1.globo.com/dynamo/sp/rio-preto-aracatuba/rss2.xml
+    tipo: google_news
+    consulta: 'site:g1.globo.com "Rio Preto"'
     escopo: local
     usar_foto: false
 
+  # o site da Prefeitura não tem RSS — lemos as notícias dele pelo Google Notícias
   - nome: Prefeitura de Rio Preto
-    tipo: rss
-    url: https://www.riopreto.sp.gov.br/feed/
+    tipo: google_news
+    consulta: "site:riopreto.sp.gov.br"
     escopo: local
-    usar_foto: true
-    credito_foto: "Prefeitura de Rio Preto"
+    usar_foto: false
 
   - nome: Câmara de Rio Preto
     tipo: google_news
