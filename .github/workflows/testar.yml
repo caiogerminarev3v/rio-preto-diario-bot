@@ -1,0 +1,25 @@
+name: Testar conexão com o Instagram
+
+# Roda manualmente (Actions → "Testar conexão com o Instagram" → Run workflow).
+# Só confere token e conta — NÃO publica nada.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Testar Instagram
+        env:
+          IG_TOKEN_RIO_PRETO_DIARIO: ${{ secrets.IG_TOKEN_RIO_PRETO_DIARIO }}
+          IG_USER_ID_RIO_PRETO_DIARIO: ${{ secrets.IG_USER_ID_RIO_PRETO_DIARIO }}
+        run: python -m rpd testar-instagram --conta rio_preto_diario
+      - name: Testar fontes de notícias
+        run: python -m rpd fontes --conta rio_preto_diario
