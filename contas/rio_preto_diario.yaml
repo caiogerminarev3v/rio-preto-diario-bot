@@ -1,0 +1,126 @@
+# ============================================================
+#  RIO PRETO DIÁRIO — configuração da conta
+#  Cada conta (jornal, secretaria...) é um arquivo nesta pasta.
+# ============================================================
+
+id: rio_preto_diario
+nome: Rio Preto Diário
+arroba: "@riopretodiario"          # ajuste para o @ real
+ativo: true
+
+# ---------- Identidade visual (TROQUE pelas suas cores) ----------
+visual:
+  logo: assets/rio_preto_diario/logo.png   # PNG com fundo transparente
+  cores:
+    primaria: "#9E0010"      # vermelho escuro (base do degradê)
+    secundaria: "#DA0215"    # vermelho da marca
+    destaque: "#111111"      # chapéu da editoria (preto)
+    texto: "#FFFFFF"
+    urgente: "#111111"       # tarja URGENTE
+    sombra_foto: "#14070A"   # escurecimento sobre fotos
+  fonte_titulo: assets/fonts/SourceSerif4.ttf   # serifada, conversa com o logo
+  fonte_texto: assets/fonts/Inter.ttf
+
+# ---------- Linha editorial (usada pelos agentes de IA) ----------
+editorial:
+  cidade: São José do Rio Preto
+  publico: moradores de São José do Rio Preto e região noroeste paulista
+  tom: >
+    Jornalismo direto, claro e neutro. Frases curtas. Sem sensacionalismo,
+    sem opinião, sem emojis em excesso (no máximo 1 por legenda).
+  hashtags_fixas: ["#RioPreto", "#SaoJoseDoRioPreto", "#RioPretoDiario"]
+  # proporção desejada no dia (o editor-chefe tenta equilibrar)
+  mix:
+    local: 0.7
+    brasil: 0.3
+
+# ---------- Regras de publicação ----------
+publicacao:
+  # "aprovacao" = vai para o Telegram e só publica com ✅
+  # "automatico" = publica sozinho
+  local: aprovacao
+  brasil: automatico
+  # pautas sensíveis (crime com suspeito identificado, menores, mortes,
+  # acusações, política eleitoral) SEMPRE pedem aprovação, mesmo nacionais
+  sensiveis_sempre_aprovacao: true
+  janela: ["07:00", "22:00"]          # horário de Brasília
+  intervalo_minimo_minutos: 75        # entre um post e outro
+  max_posts_por_dia: 10
+  max_novas_pautas_por_ciclo: 4       # quantas notícias o editor escolhe por rodada
+  coletar_a_cada_minutos: 60
+
+# ---------- Instagram ----------
+instagram:
+  # nomes dos SECRETS do GitHub (não coloque o token aqui!)
+  env_token: IG_TOKEN_RIO_PRETO_DIARIO
+  env_user_id: IG_USER_ID_RIO_PRETO_DIARIO
+  # Token de usuário do sistema (login unificado, portfólio V3V Agencia Criativa 2) — NÃO expira
+  api_host: graph.facebook.com
+  api_versao: v23.0
+  renovar_token: false
+  # app Meta: Rio Preto Diario Bot (ID 1782362089538715)
+  # ID da conta Instagram @riopretodiario: 17841449511512909
+
+# ---------- Telegram (aprovação) ----------
+telegram:
+  env_bot_token: TELEGRAM_BOT_TOKEN
+  env_chat_id: TELEGRAM_CHAT_ID_RIO_PRETO_DIARIO
+
+# ---------- Fontes (o "pauteiro" lê estas) ----------
+# tipo: rss | google_news
+# escopo: local | brasil
+# usar_foto: só "true" quando a licença permite reaproveitar a foto
+#   (Agência Brasil = Creative Commons BY; Prefeitura = órgão público, com crédito).
+#   Fotos de jornais comerciais NUNCA são usadas — a arte fica tipográfica.
+fontes:
+  - nome: Google Notícias — Rio Preto
+    tipo: google_news
+    consulta: '"Rio Preto" OR "São José do Rio Preto"'
+    escopo: local
+    usar_foto: false
+
+  - nome: g1 Rio Preto e Araçatuba
+    tipo: rss
+    url: https://g1.globo.com/dynamo/sp/rio-preto-aracatuba/rss2.xml
+    escopo: local
+    usar_foto: false
+
+  - nome: Prefeitura de Rio Preto
+    tipo: rss
+    url: https://www.riopreto.sp.gov.br/feed/
+    escopo: local
+    usar_foto: true
+    credito_foto: "Prefeitura de Rio Preto"
+
+  - nome: Câmara de Rio Preto
+    tipo: google_news
+    consulta: '"Câmara de Rio Preto" OR "vereadores de Rio Preto"'
+    escopo: local
+    usar_foto: false
+
+  - nome: Agência Brasil
+    tipo: rss
+    url: https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml
+    escopo: brasil
+    usar_foto: true
+    credito_foto: "Agência Brasil"
+
+  - nome: Google Notícias — Brasil (destaques)
+    tipo: google_news
+    consulta: "Brasil governo federal OR economia OR STF OR Congresso"
+    escopo: brasil
+    usar_foto: false
+
+# palavras que tornam uma notícia nacional relevante para Rio Preto
+palavras_relevancia_local:
+  - Rio Preto
+  - noroeste paulista
+  - Mirassol
+  - Bady Bassitt
+  - Cedral
+  - Guapiaçu
+  - Hospital de Base
+  - Famerp
+  - Unesp Rio Preto
+  - Rio Preto EC
+  - Mirassol FC
