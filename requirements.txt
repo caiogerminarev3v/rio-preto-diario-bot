@@ -1,0 +1,7 @@
+anthropic>=0.40
+feedparser>=6.0
+trafilatura>=1.12
+googlenewsdecoder>=0.1.7
+Pillow>=10.4
+PyYAML>=6.0
+requests>=2.32
