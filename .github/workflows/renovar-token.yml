@@ -1,0 +1,41 @@
+name: Renovar token do Instagram
+
+# O token de longa duração do Instagram vale 60 dias.
+# Este workflow renova todo dia 1 e 15 e grava o novo valor no secret.
+# Requer o secret GH_PAT (token do GitHub com permissão "Secrets: read and write" neste repositório).
+
+# DESATIVADO: o Rio Preto Diário usa token de usuário do sistema, que não expira.
+# Só reative (descomentando o schedule) para contas com token de login do Instagram.
+on:
+  # schedule:
+  #   - cron: "17 12 1,15 * *"
+  workflow_dispatch:
+
+jobs:
+  renovar:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - conta: rio_preto_diario
+            secret: IG_TOKEN_RIO_PRETO_DIARIO
+          # - conta: sec_saude
+          #   secret: IG_TOKEN_SEC_SAUDE
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Renovar e gravar
+        env:
+          IG_TOKEN_ATUAL: ${{ secrets[matrix.secret] }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          NOVO=$(python -m rpd renovar-token --conta ${{ matrix.conta }} 2>/dev/null)
+          if [ -z "$NOVO" ]; then echo "Falha ao renovar"; exit 1; fi
+          echo "::add-mask::$NOVO"
+          gh secret set ${{ matrix.secret }} --body "$NOVO" --repo "$GITHUB_REPOSITORY"
+          echo "Token de ${{ matrix.conta }} renovado."

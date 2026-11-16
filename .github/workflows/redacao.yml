@@ -1,0 +1,72 @@
+name: Redação automática
+
+on:
+  schedule:
+    # a cada 15 min, das 06h às 23h de Brasília (09–02 UTC)
+    - cron: "*/15 9-23 * * *"
+    - cron: "*/15 0-2 * * *"
+  workflow_dispatch:
+    inputs:
+      conta:
+        description: "Conta (vazio = todas)"
+        required: false
+
+concurrency:
+  group: redacao
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  ciclo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Configurar git
+        run: |
+          git config user.name  "redacao-bot"
+          git config user.email "redacao-bot@users.noreply.github.com"
+
+      - name: Rodar agentes
+        env:
+          TZ: America/Sao_Paulo
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
+          RPD_HOSPEDAGEM: ${{ vars.RPD_HOSPEDAGEM || 'github' }}
+          # --- Rio Preto Diário ---
+          IG_TOKEN_RIO_PRETO_DIARIO: ${{ secrets.IG_TOKEN_RIO_PRETO_DIARIO }}
+          IG_USER_ID_RIO_PRETO_DIARIO: ${{ secrets.IG_USER_ID_RIO_PRETO_DIARIO }}
+          TELEGRAM_CHAT_ID_RIO_PRETO_DIARIO: ${{ secrets.TELEGRAM_CHAT_ID_RIO_PRETO_DIARIO }}
+          # --- Secretarias: copie as 3 linhas acima trocando o sufixo ---
+          # IG_TOKEN_SEC_SAUDE: ${{ secrets.IG_TOKEN_SEC_SAUDE }}
+          # IG_USER_ID_SEC_SAUDE: ${{ secrets.IG_USER_ID_SEC_SAUDE }}
+          # TELEGRAM_CHAT_ID_SEC_SAUDE: ${{ secrets.TELEGRAM_CHAT_ID_SEC_SAUDE }}
+          CONTA: ${{ github.event.inputs.conta }}
+        run: |
+          if [ -n "$CONTA" ]; then
+            python -m rpd ciclo --conta "$CONTA"
+          else
+            python -m rpd ciclo
+          fi
+
+      - name: Salvar memória da redação
+        if: always()
+        run: |
+          git add -A dados publicacoes
+          git diff --cached --quiet && exit 0
+          git commit -m "estado $(date +'%d/%m %H:%M')" --quiet
+          for i in 1 2 3; do
+            git pull --rebase --quiet origin "${GITHUB_REF_NAME}" && git push --quiet origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep 5
+          done
