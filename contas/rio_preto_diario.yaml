@@ -33,6 +33,7 @@ editorial:
   mix:
     local: 0.7
     brasil: 0.3
+  # prioridades: tragédias (municipal/regional/nacional) > política > serviços
 
 # ---------- Regras de publicação ----------
 publicacao:
@@ -96,6 +97,26 @@ fontes:
     tipo: google_news
     consulta: '"Câmara de Rio Preto" OR "vereadores de Rio Preto"'
     escopo: local
+    usar_foto: false
+
+  # ---- tragédias e ocorrências: municipal e regional ----
+  - nome: Ocorrências — Rio Preto
+    tipo: google_news
+    consulta: '"Rio Preto" (acidente OR morre OR morte OR incêndio OR temporal OR afogado OR "Defesa Civil" OR "Corpo de Bombeiros")'
+    escopo: local
+    usar_foto: false
+
+  - nome: Ocorrências — Região noroeste
+    tipo: google_news
+    consulta: '(Mirassol OR Catanduva OR Votuporanga OR Fernandópolis OR Olímpia OR Barretos OR "José Bonifácio" OR "Bady Bassitt" OR Tanabi OR "Nova Granada") (acidente OR morre OR incêndio OR tragédia OR temporal)'
+    escopo: local
+    usar_foto: false
+
+  # ---- tragédias de repercussão nacional ----
+  - nome: Tragédias — Brasil
+    tipo: google_news
+    consulta: 'tragédia OR desastre OR "mortos" OR deslizamento OR enchente OR "acidente grave" Brasil'
+    escopo: brasil
     usar_foto: false
 
   - nome: Agência Brasil
