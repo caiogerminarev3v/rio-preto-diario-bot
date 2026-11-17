@@ -45,9 +45,10 @@ Editoria sugerida: {decisao.get('editoria', 'CIDADE')}
 
 Produza o post. Formato JSON:
 {{
- "editoria": "chapéu em MAIÚSCULAS, 1 palavra (ex.: SAÚDE)",
- "titulo_arte": "manchete da arte, impactante e fiel, até 75 caracteres, sem ponto final",
- "subtitulo_arte": "linha de apoio com o dado principal, até 110 caracteres",
+ "editoria": "1 palavra em MAIÚSCULAS (ex.: SAÚDE, TRÂNSITO, ECONOMIA)",
+ "categoria": "linha de editoria da arte, máx. 36 caracteres: '{'RIO PRETO' if pauta.escopo == 'local' else 'BRASIL'} • EDITORIA' (ex.: 'RIO PRETO • SAÚDE'); se o fato for de outra cidade da região, use o nome dela",
+ "titulo_arte": "manchete da arte: ENTRE 55 E 90 CARACTERES, fiel, direta, sem ponto final, sem prefixos como VÍDEO:/VEJA:/SAIBA",
+ "subtitulo_arte": "linha de apoio com o dado principal, até 110 caracteres (vai só na legenda)",
  "legenda": "legenda do Instagram: 1ª linha = manchete forte; depois 2 a 4 parágrafos curtos com o essencial (o quê, quem, quando, onde, por quê, o que muda para o morador); se houver serviço (telefone, endereço, prazo) destaque; termine com 'Fonte: {pauta.fonte}' e uma pergunta curta de engajamento quando fizer sentido. Máximo 1 emoji. Sem hashtags aqui.",
  "hashtags": ["até 5 hashtags específicas do assunto, sem as fixas"],
  "alt_text": "descrição acessível da arte em 1 frase"
@@ -65,12 +66,17 @@ Se o material for insuficiente para um post confiável, devolva {{"insuficiente"
         legenda += f"\n\n📷 Foto: {pauta.credito_foto}"
     legenda += "\n\n" + " ".join(tags)
 
+    dados_pauta = pauta.__dict__.copy()
+    dados_pauta["categoria"] = (r.get("categoria") or "").upper()[:36]
+    titulo = r["titulo_arte"].strip().rstrip(".")
+    if len(titulo) > 125:  # limite rígido da skill
+        titulo = titulo[:122].rsplit(" ", 1)[0] + "…"
     return Post(
         id=pauta.id,
-        pauta=pauta.__dict__.copy(),
+        pauta=dados_pauta,
         escopo=pauta.escopo,
         editoria=r.get("editoria", decisao.get("editoria", "CIDADE")).upper()[:14],
-        titulo_arte=r["titulo_arte"].strip().rstrip("."),
+        titulo_arte=titulo,
         subtitulo_arte=r.get("subtitulo_arte", "").strip(),
         legenda=legenda[:2150],
         alt_text=r.get("alt_text", "")[:900],

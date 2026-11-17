@@ -128,17 +128,37 @@ def coletar(conta: Conta, estado: Estado) -> list[Pauta]:
     return novas
 
 
-def buscar_texto_completo(pauta: Pauta) -> None:
-    """Baixa a matéria para o redator ter contexto (não é republicado)."""
+def buscar_texto_completo(pauta: Pauta, conta: Conta | None = None) -> None:
+    """Baixa a matéria para o redator ter contexto (não é republicado).
+    Se o site estiver em `fotos_liberadas` da conta, pega a foto de destaque
+    (og:image) com o crédito configurado."""
     try:
         import trafilatura
         pauta.link = _resolver_google(pauta.link)
         baixado = trafilatura.fetch_url(pauta.link)
-        if baixado:
-            texto = trafilatura.extract(baixado, include_comments=False) or ""
-            pauta.texto_completo = texto[:6000]
+        if not baixado:
+            return
+        texto = trafilatura.extract(baixado, include_comments=False) or ""
+        pauta.texto_completo = texto[:6000]
+        if conta and not pauta.imagem_url:
+            credito = _credito_liberado(conta, pauta.link)
+            if credito:
+                m = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)', baixado) \
+                    or re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image', baixado)
+                if m and not re.search(r"logo|default|placeholder", m.group(1), re.I):
+                    pauta.imagem_url = html.unescape(m.group(1))
+                    pauta.credito_foto = credito
     except Exception as e:  # noqa: BLE001
         log.debug("sem texto completo para %s: %s", pauta.link, e)
+
+
+def _credito_liberado(conta: Conta, link: str) -> str:
+    from urllib.parse import urlparse
+    host = urlparse(link).netloc.lower().removeprefix("www.")
+    for dominio, credito in (conta.get("fotos_liberadas") or {}).items():
+        if host == dominio or host.endswith("." + dominio):
+            return credito
+    return ""
 
 
 def testar_fontes(conta: Conta) -> None:
