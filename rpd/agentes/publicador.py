@@ -66,6 +66,33 @@ def publicar(conta: Conta, image_url: str, legenda: str, alt_text: str = "") -> 
     return pub["id"]
 
 
+def publicar_reel(conta: Conta, video_url: str, legenda: str, capa_offset_ms: int = 1000) -> str:
+    """Publica um Reels (vídeo vertical) e também no feed."""
+    token = conta.segredo("instagram", "env_token")
+    user_id = conta.segredo("instagram", "env_user_id")
+    base = _base(conta)
+    container = _checar(requests.post(f"{base}/{user_id}/media", data={
+        "media_type": "REELS", "video_url": video_url, "caption": legenda,
+        "share_to_feed": "true", "thumb_offset": str(capa_offset_ms), "access_token": token,
+    }, timeout=60))["id"]
+    log.info("Contêiner de vídeo criado: %s, aguardando processamento", container)
+    for _ in range(60):  # até ~10 min
+        st = _checar(requests.get(f"{base}/{container}",
+                                  params={"fields": "status_code,status", "access_token": token}, timeout=30))
+        code = st.get("status_code")
+        if code == "FINISHED":
+            break
+        if code == "ERROR":
+            raise ErroInstagram(f"Instagram não processou o vídeo: {st.get('status')}")
+        time.sleep(10)
+    else:
+        raise ErroInstagram("tempo esgotado processando o vídeo")
+    pub = _checar(requests.post(f"{base}/{user_id}/media_publish",
+                                data={"creation_id": container, "access_token": token}, timeout=60))
+    log.info("Reels publicado: %s", pub["id"])
+    return pub["id"]
+
+
 def renovar_token(conta: Conta) -> str:
     """Só para tokens de login do Instagram (graph.instagram.com, 60 dias).
     Tokens de usuário do sistema (graph.facebook.com) não expiram e não usam isto."""
