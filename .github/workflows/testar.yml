@@ -1,7 +1,7 @@
 name: Testar conexão com o Instagram
 
 # Roda manualmente (Actions → "Testar conexão com o Instagram" → Run workflow).
-# Só confere token e conta — NÃO publica nada.
+# Só confere token, conta, fontes e Telegram — NÃO publica nada.
 
 on:
   workflow_dispatch:
@@ -23,3 +23,21 @@ jobs:
         run: python -m rpd testar-instagram --conta rio_preto_diario
       - name: Testar fontes de notícias
         run: python -m rpd fontes --conta rio_preto_diario
+      - name: Testar Telegram (mostra o CHAT_ID)
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: python -m rpd telegram-chats
+      - name: Testar IA (Anthropic)
+        if: always()
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          if not os.environ.get("ANTHROPIC_API_KEY"):
+              print("❌ ANTHROPIC_API_KEY não configurada"); raise SystemExit(0)
+          from rpd import llm
+          r = llm.pedir_json("Você testa conexões.", 'Responda {"ok": true, "msg": "IA conectada"}', max_tokens=50)
+          print("✅", r.get("msg"), "| modelo:", llm.MODELO)
+          PY
