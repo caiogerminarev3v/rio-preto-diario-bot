@@ -189,10 +189,40 @@ def simular(conta_id: str) -> None:
     print(f"\n{len(posts)} posts gerados em saida/{conta_id}/ (nada foi publicado)")
 
 
+def manual(conta_id: str) -> None:
+    """Post feito à mão (workflow "Publicação manual"). Lê os campos do ambiente.
+    MANUAL_PUBLICAR=true publica; senão só gera a arte e mostra o link da prévia."""
+    import os
+    import re as _re
+    conta = carregar_conta(conta_id)
+    e = os.environ
+    titulo = e["MANUAL_TITULO"].strip()
+    slug = _re.sub(r"[^a-z0-9]+", "-", titulo.lower())[:50].strip("-")
+    post = Post(
+        id=f"manual-{slug}", escopo="local", editoria="MANUAL",
+        titulo_arte=titulo, subtitulo_arte="", legenda=e["MANUAL_LEGENDA"].replace("\\n", "\n"),
+        alt_text=e.get("MANUAL_ALT", ""), urgente=e.get("MANUAL_URGENTE", "false") == "true",
+        pauta={"fonte": e.get("MANUAL_FONTE", ""), "imagem_url": e.get("MANUAL_IMAGEM", ""),
+               "credito_foto": e.get("MANUAL_CREDITO", ""), "categoria": e.get("MANUAL_CATEGORIA", ""),
+               "foco": e.get("MANUAL_FOCO") or "center 25%"},
+        criado_em=agora().isoformat(),
+    )
+    arte = designer.criar_arte(conta, post, config.RAIZ / "publicacoes" / "manual" / f"{post.id}.jpg")
+    url = publicar_imagem(arte, "manual")
+    print(f"🖼  Prévia da arte: {url}")
+    print("----- LEGENDA -----")
+    print(post.legenda)
+    if e.get("MANUAL_PUBLICAR", "false") == "true":
+        ig = publicador.publicar(conta, url, post.legenda, post.alt_text)
+        print(f"📲 PUBLICADO no Instagram: id {ig}")
+    else:
+        print("ℹ️  Só prévia: nada foi publicado. Rode de novo com 'publicar' marcado.")
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-10s %(message)s", datefmt="%H:%M:%S")
     ap = argparse.ArgumentParser(prog="rpd")
-    ap.add_argument("comando", choices=["ciclo", "fontes", "simular", "renovar-token", "testar-instagram", "telegram-chats"])
+    ap.add_argument("comando", choices=["ciclo", "fontes", "simular", "renovar-token", "testar-instagram", "telegram-chats", "manual"])
     ap.add_argument("--conta", help="id da conta (arquivo em contas/)")
     a = ap.parse_args()
 
@@ -202,6 +232,8 @@ def main() -> None:
         pauteiro.testar_fontes(carregar_conta(a.conta or "rio_preto_diario"))
     elif a.comando == "simular":
         simular(a.conta or "rio_preto_diario")
+    elif a.comando == "manual":
+        manual(a.conta or "rio_preto_diario")
     elif a.comando == "telegram-chats":
         aprovacao.listar_chats()
     elif a.comando == "testar-instagram":
