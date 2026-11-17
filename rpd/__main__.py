@@ -55,7 +55,7 @@ def produzir(conta: Conta, estado: Estado, simular: bool = False) -> list[Post]:
     prontos = []
     for pauta, decisao in escolhidas:
         try:
-            pauteiro.buscar_texto_completo(pauta)
+            pauteiro.buscar_texto_completo(pauta, conta)
             post = redator.escrever(conta, pauta, decisao)
             post = checador.checar(post)
             pasta = config.RAIZ / ("saida" if simular else "publicacoes") / conta.id
