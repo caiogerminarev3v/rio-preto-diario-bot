@@ -108,3 +108,27 @@ def responder_clique(callback_id: str, texto: str) -> None:
                       data={"callback_query_id": callback_id, "text": texto}, timeout=15)
     except Exception:  # noqa: BLE001
         pass
+
+
+def listar_chats() -> None:
+    """Mostra os chats que mandaram mensagem ao bot (para descobrir o CHAT_ID)."""
+    if not disponivel():
+        print("❌ TELEGRAM_BOT_TOKEN não configurado")
+        return
+    me = requests.get(_api("getMe"), timeout=20).json()
+    if not me.get("ok"):
+        print(f"❌ Token do Telegram inválido: {me.get('description')}")
+        return
+    print(f"✅ Bot: @{me['result']['username']}")
+    r = requests.get(_api("getUpdates"), params={"timeout": 0}, timeout=20).json()
+    vistos = {}
+    for up in r.get("result", []):
+        msg = up.get("message") or up.get("my_chat_member") or {}
+        chat = msg.get("chat")
+        if chat:
+            nome = chat.get("title") or " ".join(filter(None, [chat.get("first_name"), chat.get("last_name")]))
+            vistos[chat["id"]] = f"{chat.get('type')}: {nome}"
+    if not vistos:
+        print("⚠️  Nenhuma mensagem encontrada. Mande 'oi' para o bot no Telegram e rode de novo.")
+    for cid, desc in vistos.items():
+        print(f"💬 CHAT_ID = {cid}   ({desc})")
