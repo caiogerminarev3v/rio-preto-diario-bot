@@ -10,16 +10,16 @@ ativo: true
 
 # ---------- Identidade visual (TROQUE pelas suas cores) ----------
 visual:
-  logo: assets/rio_preto_diario/logo.png   # PNG com fundo transparente
+  # padrão oficial: skill "rio-preto-diario-social" (docs/design/)
+  logo: assets/rio_preto_diario/logo.png                # logo recortada oficial
+  logo_outline: assets/rio_preto_diario/logo-outline.png
+  mosaico: assets/rio_preto_diario/watermark-tile.png
+  fonte_titulo: assets/fonts/PlusJakartaSans.ttf
+  fonte_editorial: assets/fonts/PlayfairDisplay.ttf     # variante "editorial"
+  rodape: "@RIOPRETODIARIO"
   cores:
-    primaria: "#9E0010"      # vermelho escuro (base do degradê)
-    secundaria: "#DA0215"    # vermelho da marca
-    destaque: "#111111"      # chapéu da editoria (preto)
-    texto: "#FFFFFF"
-    urgente: "#111111"       # tarja URGENTE
-    sombra_foto: "#14070A"   # escurecimento sobre fotos
-  fonte_titulo: assets/fonts/SourceSerif4.ttf   # serifada, conversa com o logo
-  fonte_texto: assets/fonts/Inter.ttf
+    marca: "#DA0315"
+    acento: "#FF1F34"
 
 # ---------- Linha editorial (usada pelos agentes de IA) ----------
 editorial:
@@ -110,6 +110,16 @@ fontes:
     consulta: "Brasil governo federal OR economia OR STF OR Congresso"
     escopo: brasil
     usar_foto: false
+
+# Sites cuja FOTO DE DESTAQUE pode ser usada na arte (com crédito).
+# Só entram órgãos públicos e a Agência Brasil (licença Creative Commons BY).
+# Jornais comerciais (g1, Diário da Região, DHoje...) NUNCA entram aqui.
+fotos_liberadas:
+  agenciabrasil.ebc.com.br: "Agência Brasil"
+  riopreto.sp.gov.br: "Prefeitura de Rio Preto"
+  riopreto.sp.leg.br: "Câmara de Rio Preto"
+  sp.gov.br: "Governo de SP"
+  gov.br: "Governo Federal"
 
 # palavras que tornam uma notícia nacional relevante para Rio Preto
 palavras_relevancia_local:
