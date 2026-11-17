@@ -1,0 +1,70 @@
+{
+  "brand": {
+    "name": "Rio Preto Diário",
+    "monogram": "rpd",
+    "cutoutLogo": "brand/logo-rio-preto-diario.png",
+    "handle": "@riopretodiario",
+    "referenceLogo": "WhatsApp Image 2026-11-16 at 16.08.00.jpeg",
+    "referenceLayout": "WhatsApp Image 2026-11-16 at 17.34.42.jpeg"
+  },
+  "canvas": {
+    "width": 1080,
+    "height": 1350,
+    "aspectRatio": "4:5",
+    "formatNote": "4:5 (1080x1350) maximiza altura no feed e garante compatibilidade universal com APIs de automação (Instagram Graph API, n8n, Meta Business Suite)."
+  },
+  "safeZones": {
+    "grid3x4CropSidesPx": 34,
+    "safeMarginLeftPx": 88,
+    "safeMarginRightPx": 108,
+    "safeMarginTopPx": 84,
+    "safeMarginBottomPx": 72,
+    "watermarkFadeRadiusPct": 38
+  },
+  "colors": {
+    "brandCrimson": "#DA0315",
+    "portalRed": "#FF1F34",
+    "urgentRed": "#E11D2E",
+    "inkBlack": "#06070A",
+    "headlineWhite": "#FFFFFF",
+    "kickerText": "#F3F4F6",
+    "footerMuted": "rgba(255, 255, 255, 0.72)",
+    "watermarkStroke": "rgba(255, 255, 255, 0.22)"
+  },
+  "typography": {
+    "headlineFont": "Plus Jakarta Sans",
+    "editorialVariantFont": "Playfair Display",
+    "kicker": {
+      "fontSizePx": 20,
+      "fontWeight": 700,
+      "letterSpacing": "0.14em",
+      "textTransform": "uppercase"
+    },
+    "headlineBreakpoints": [
+      { "maxChars": 50, "fontSizePx": 58, "lineHeight": 1.12 },
+      { "maxChars": 75, "fontSizePx": 52, "lineHeight": 1.13 },
+      { "maxChars": 100, "fontSizePx": 46, "lineHeight": 1.15 },
+      { "maxChars": 130, "fontSizePx": 41, "lineHeight": 1.16 }
+    ],
+    "maxHeadlineCharsRecommended": 95,
+    "maxHeadlineCharsHard": 125
+  },
+  "variants": {
+    "padrao": {
+      "description": "Layout principal diário inspirado no G1 com monograma rpd, marca d'água suave e acentos em vermelho vivo (#FF1F34).",
+      "accentColor": "#FF1F34",
+      "fontFamily": "Plus Jakarta Sans"
+    },
+    "urgente": {
+      "description": "Plantão / última hora com selo URGENTE e reforço cromático em carmim.",
+      "accentColor": "#FF1F34",
+      "badge": "URGENTE",
+      "fontFamily": "Plus Jakarta Sans"
+    },
+    "editorial": {
+      "description": "Reportagem especial / opinião usando tipografia serifada clássica.",
+      "accentColor": "#DA0315",
+      "fontFamily": "Playfair Display"
+    }
+  }
+}
