@@ -223,7 +223,7 @@ def manual(conta_id: str) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-10s %(message)s", datefmt="%H:%M:%S")
     ap = argparse.ArgumentParser(prog="rpd")
-    ap.add_argument("comando", choices=["ciclo", "fontes", "simular", "renovar-token", "testar-instagram", "telegram-chats", "manual"])
+    ap.add_argument("comando", choices=["ciclo", "fontes", "simular", "renovar-token", "testar-instagram", "telegram-chats", "manual", "reel"])
     ap.add_argument("--conta", help="id da conta (arquivo em contas/)")
     a = ap.parse_args()
 
@@ -233,6 +233,15 @@ def main() -> None:
         pauteiro.testar_fontes(carregar_conta(a.conta or "rio_preto_diario"))
     elif a.comando == "simular":
         simular(a.conta or "rio_preto_diario")
+    elif a.comando == "reel":
+        import os
+        conta = carregar_conta(a.conta or "rio_preto_diario")
+        repo = os.environ["GITHUB_REPOSITORY"]
+        url = f"https://raw.githubusercontent.com/{repo}/{os.environ.get('GITHUB_SHA', 'main')}/{os.environ['REEL_ARQUIVO']}"
+        print(f"🎬 Vídeo: {url}")
+        legenda = os.environ["REEL_LEGENDA"].replace("\\n", "\n")
+        ig = publicador.publicar_reel(conta, url, legenda)
+        print(f"📲 REELS PUBLICADO no Instagram: id {ig}")
     elif a.comando == "manual":
         manual(a.conta or "rio_preto_diario")
     elif a.comando == "telegram-chats":
