@@ -1,0 +1,75 @@
+name: Publicação manual
+
+# Gera a arte de um post feito à mão e (se marcado) publica no Instagram.
+# 1ª vez: deixe "publicar" desmarcado → veja a prévia no log.
+# 2ª vez: mesmos dados com "publicar" marcado → vai ao ar.
+
+on:
+  workflow_dispatch:
+    inputs:
+      titulo:
+        description: "Manchete da arte (55–90 caracteres)"
+        required: true
+      categoria:
+        description: "Editoria (ex.: RIO PRETO • SAÚDE)"
+        required: false
+      legenda:
+        description: "Legenda completa (use \\n para quebrar linha)"
+        required: true
+      imagem:
+        description: "URL da foto (só de fonte liberada) — vazio = arte tipográfica"
+        required: false
+      credito:
+        description: "Crédito da foto"
+        required: false
+      foco:
+        description: "Foco da foto (ex.: 50% 10% para grupos)"
+        required: false
+        default: "center 25%"
+      fonte:
+        description: "Fonte da notícia"
+        required: false
+      urgente:
+        description: "Selo URGENTE"
+        type: boolean
+        default: false
+      publicar:
+        description: "PUBLICAR no Instagram (desmarcado = só prévia)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: redacao
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  manual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Configurar git
+        run: |
+          git config user.name  "redacao-bot"
+          git config user.email "redacao-bot@users.noreply.github.com"
+      - name: Gerar arte e publicar
+        env:
+          IG_TOKEN_RIO_PRETO_DIARIO: ${{ secrets.IG_TOKEN_RIO_PRETO_DIARIO }}
+          IG_USER_ID_RIO_PRETO_DIARIO: ${{ secrets.IG_USER_ID_RIO_PRETO_DIARIO }}
+          MANUAL_TITULO: ${{ github.event.inputs.titulo }}
+          MANUAL_CATEGORIA: ${{ github.event.inputs.categoria }}
+          MANUAL_LEGENDA: ${{ github.event.inputs.legenda }}
+          MANUAL_IMAGEM: ${{ github.event.inputs.imagem }}
+          MANUAL_CREDITO: ${{ github.event.inputs.credito }}
+          MANUAL_FOCO: ${{ github.event.inputs.foco }}
+          MANUAL_FONTE: ${{ github.event.inputs.fonte }}
+          MANUAL_URGENTE: ${{ github.event.inputs.urgente }}
+          MANUAL_PUBLICAR: ${{ github.event.inputs.publicar }}
+        run: python -m rpd manual --conta rio_preto_diario
