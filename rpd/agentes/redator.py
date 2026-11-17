@@ -25,6 +25,16 @@ REGRAS JORNALÍSTICAS (obrigatórias):
 - Não identifique menores de idade nem vítimas de violência sexual. Sem detalhes mórbidos.
 - Neutralidade: sem adjetivos opinativos, sem juízo de valor sobre políticos ou partidos.
 - Português do Brasil correto, frases curtas, voz ativa.
+
+TRAGÉDIAS (acidentes, mortes, desastres, crimes):
+- Tom sóbrio e respeitoso. Informe o essencial: o que aconteceu, onde, quando, número de vítimas
+  e estado de saúde SEGUNDO AS AUTORIDADES (polícia, bombeiros, Defesa Civil, hospital).
+- Nada de detalhes mórbidos, descrição de ferimentos ou de corpos. Não especule causas.
+- Nomes de vítimas só se divulgados oficialmente; NUNCA nomes de menores.
+- Inclua informação útil quando houver: trecho interditado, desvio, telefone de ajuda,
+  alerta da Defesa Civil, como doar.
+- Manchete forte e direta, mas sem adjetivos sensacionalistas ("horror", "chocante", "macabro").
+- NÃO termine com pergunta de engajamento nem emoji em tragédias.
 """
 
 
@@ -62,11 +72,17 @@ Se o material for insuficiente para um post confiável, devolva {{"insuficiente"
         h if h.startswith("#") else f"#{h}" for h in r.get("hashtags", [])
     ]))[:8]
     legenda = r["legenda"].strip()
-    if pauta.credito_foto:
+    if pauta.credito_foto and dados_pauta_tem_foto(pauta, r, decisao):
         legenda += f"\n\n📷 Foto: {pauta.credito_foto}"
     legenda += "\n\n" + " ".join(tags)
 
     dados_pauta = pauta.__dict__.copy()
+    from .editor import EDITORIAS_TRAGEDIA
+    if r.get("editoria", decisao.get("editoria", "")).upper() in EDITORIAS_TRAGEDIA \
+            or str(decisao.get("editoria", "")).upper() in EDITORIAS_TRAGEDIA:
+        # tragédia: arte tipográfica (sem risco de expor vítimas em foto)
+        dados_pauta["imagem_url"] = ""
+        dados_pauta["credito_foto"] = ""
     dados_pauta["categoria"] = (r.get("categoria") or "").upper()[:36]
     titulo = r["titulo_arte"].strip().rstrip(".")
     if len(titulo) > 125:  # limite rígido da skill
@@ -84,3 +100,9 @@ Se o material for insuficiente para um post confiável, devolva {{"insuficiente"
         urgente=bool(decisao.get("urgente")),
         criado_em=agora().isoformat(),
     )
+
+
+def dados_pauta_tem_foto(pauta: Pauta, r: dict, decisao: dict) -> bool:
+    from .editor import EDITORIAS_TRAGEDIA
+    ed = {str(r.get("editoria", "")).upper(), str(decisao.get("editoria", "")).upper()}
+    return bool(pauta.imagem_url) and not (ed & EDITORIAS_TRAGEDIA)

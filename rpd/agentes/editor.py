@@ -18,7 +18,10 @@ from ..modelos import Pauta
 log = logging.getLogger("editor")
 
 EDITORIAS = ["CIDADE", "SAÚDE", "SEGURANÇA", "POLÍTICA", "ECONOMIA", "EDUCAÇÃO",
-             "TRÂNSITO", "CLIMA", "ESPORTE", "CULTURA", "EMPREGO", "BRASIL", "MUNDO"]
+             "TRÂNSITO", "CLIMA", "ESPORTE", "CULTURA", "EMPREGO", "BRASIL", "MUNDO",
+             "TRAGÉDIA", "ACIDENTE", "POLÍCIA", "DEFESA CIVIL"]
+# editorias de tragédia: sempre aprovação humana e arte sem foto
+EDITORIAS_TRAGEDIA = {"TRAGÉDIA", "ACIDENTE", "POLÍCIA", "DEFESA CIVIL"}
 
 
 def _parecido(a: str, b: str) -> float:
@@ -56,11 +59,15 @@ def escolher(conta: Conta, estado: Estado, pautas: list[Pauta]) -> list[tuple[Pa
     sistema = (
         f"Você é editor-chefe do perfil de notícias '{conta['nome']}' no Instagram, "
         f"focado em {ed['cidade']}. Público: {ed['publico']}.\n"
-        "Escolha as pautas com maior interesse público e utilidade para esse público "
-        "(serviços, saúde, trânsito, obras, segurança, economia local, decisões que afetam a vida "
-        "das pessoas). Notícias nacionais só se forem de grande impacto. "
+        "Escolha as pautas com maior interesse público e engajamento para esse público:\n"
+        "1) TRAGÉDIAS e fatos graves — acidentes com vítimas, incêndios, desastres, temporais, "
+        "afogamentos, crimes graves — em Rio Preto (municipal), nas cidades da região noroeste "
+        "paulista (regional) e de grande repercussão no país (nacional). Têm alta prioridade.\n"
+        "2) Política (municipal, estadual e nacional) e decisões que afetam a vida das pessoas.\n"
+        "3) Serviços, saúde, trânsito, obras, economia local, emprego.\n"
+        "Notícias nacionais só se forem de grande impacto. "
         "Descarte: fofoca, publieditorial, conteúdo pago, notas sem informação, "
-        "notícias de outras cidades sem ligação com a região, e conteúdo velho."
+        "notícias de cidades fora da região sem repercussão nacional, e conteúdo velho."
     )
     usuario = (
         f"Já publicamos hoje {len(hoje)} posts ({locais_hoje} locais). Mix desejado: "
@@ -72,6 +79,7 @@ def escolher(conta: Conta, estado: Estado, pautas: list[Pauta]) -> list[tuple[Pa
         '{"escolhidas":[{"i":0,"editoria":"' + "|".join(EDITORIAS) + '",'
         '"sensivel":true/false,"urgente":true/false,"motivo":"curto"}],'
         '"descartadas_motivo":"resumo curto"}\n'
+        "Para tragédias use editoria TRAGÉDIA, ACIDENTE, POLÍCIA ou DEFESA CIVIL.\n"
         "sensivel=true quando envolve: crime com suspeito/vítima identificável, morte, menor de idade, "
         "acusação contra pessoa, saúde de pessoa identificada, política eleitoral, ou qualquer risco jurídico.\n"
         "urgente=true só para fatos de altíssimo impacto imediato (ex.: alerta de defesa civil, "
@@ -82,6 +90,8 @@ def escolher(conta: Conta, estado: Estado, pautas: list[Pauta]) -> list[tuple[Pa
     for item in resposta.get("escolhidas", [])[:n]:
         i = item.get("i")
         if isinstance(i, int) and 0 <= i < len(pautas):
+            if str(item.get("editoria", "")).upper() in EDITORIAS_TRAGEDIA:
+                item["sensivel"] = True   # tragédia sempre passa pela aprovação humana
             escolhidas.append((pautas[i], item))
     log.info("Editor escolheu %d de %d pautas. Descartes: %s", len(escolhidas), len(pautas),
              resposta.get("descartadas_motivo", "")[:200])
