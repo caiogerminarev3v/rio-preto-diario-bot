@@ -192,7 +192,7 @@ def simular(conta_id: str) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-10s %(message)s", datefmt="%H:%M:%S")
     ap = argparse.ArgumentParser(prog="rpd")
-    ap.add_argument("comando", choices=["ciclo", "fontes", "simular", "renovar-token", "testar-instagram"])
+    ap.add_argument("comando", choices=["ciclo", "fontes", "simular", "renovar-token", "testar-instagram", "telegram-chats"])
     ap.add_argument("--conta", help="id da conta (arquivo em contas/)")
     a = ap.parse_args()
 
@@ -202,6 +202,8 @@ def main() -> None:
         pauteiro.testar_fontes(carregar_conta(a.conta or "rio_preto_diario"))
     elif a.comando == "simular":
         simular(a.conta or "rio_preto_diario")
+    elif a.comando == "telegram-chats":
+        aprovacao.listar_chats()
     elif a.comando == "testar-instagram":
         publicador.testar_conexao(carregar_conta(a.conta or "rio_preto_diario"))
     elif a.comando == "renovar-token":
