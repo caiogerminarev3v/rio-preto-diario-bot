@@ -199,7 +199,8 @@ def manual(conta_id: str) -> None:
     titulo = e["MANUAL_TITULO"].strip()
     slug = _re.sub(r"[^a-z0-9]+", "-", titulo.lower())[:50].strip("-")
     post = Post(
-        id=f"manual-{slug}", escopo="local", editoria="MANUAL",
+        id=f"manual-{slug}-{agora():%d%H%M%S}",  # nome único: evita cache do link público
+        escopo="local", editoria="MANUAL",
         titulo_arte=titulo, subtitulo_arte="", legenda=e["MANUAL_LEGENDA"].replace("\\n", "\n"),
         alt_text=e.get("MANUAL_ALT", ""), urgente=e.get("MANUAL_URGENTE", "false") == "true",
         pauta={"fonte": e.get("MANUAL_FONTE", ""), "imagem_url": e.get("MANUAL_IMAGEM", ""),
