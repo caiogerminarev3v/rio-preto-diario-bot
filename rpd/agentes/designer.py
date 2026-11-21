@@ -20,6 +20,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFo
 
 from ..config import Conta
 from ..modelos import Post
+from . import ilustrador
 
 log = logging.getLogger("designer")
 
@@ -263,6 +264,9 @@ def criar_arte(conta: Conta, post: Post, destino: Path) -> Path:
         base = _camada_foto(foto, post.pauta.get("foco", "center 25%"))
     else:
         base = _fundo_tipografico(conta.caminho(v.get("logo_outline", "assets/rio_preto_diario/logo-outline.png")))
+        # sem foto liberada: ELEMENTOS VISUAIS do tema (regra: nunca arte vazia)
+        tema = ilustrador.detectar_tema(post.pauta.get("categoria") or post.editoria, post.titulo_arte)
+        base = Image.alpha_composite(base, ilustrador.camada(tema, W, H))
 
     # ---------- 2 a 5 ----------
     base = Image.alpha_composite(base, _camada_vinheta())
