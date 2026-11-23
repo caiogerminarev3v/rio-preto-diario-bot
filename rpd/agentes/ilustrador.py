@@ -28,6 +28,8 @@ LADO = 900      # área da ilustração (px, na arte final)
 
 # tema -> palavras-chave (sem acento, minúsculas)
 TEMAS: dict[str, list[str]] = {
+    "signos": ["signo", "horoscopo", "astrologia", "zodiaco", "mapa astral"],
+    "motivacional": ["motivacional", "motivacao", "inspira", "boa semana", "bom dia", "superacao"],
     "dengue": ["dengue", "mosquito", "aedes", "chikungunya", "zika", "arbovirose"],
     "saude": ["saude", "vacina", "ubs", "hospital", "medic", "doenca", "sus", "upa", "gripe"],
     "clima": ["chuva", "tempestade", "temporal", "calor", "inmet", "granizo", "clima", "queimada",
@@ -45,7 +47,7 @@ TEMAS: dict[str, list[str]] = {
     "transito": ["transito", "avenida", "rua ", "interdi", "obra", "desvio", "rodovia", "semaforo",
                  "onibus", "via ", "pista", "ciclovia", "viaduto"],
 }
-PRIORIDADE = ["dengue", "alerta", "clima", "dinheiro", "emprego", "educacao", "saude", "agua",
+PRIORIDADE = ["signos", "motivacional", "dengue", "alerta", "clima", "dinheiro", "emprego", "educacao", "saude", "agua",
               "politica", "evento", "transito"]
 
 
@@ -255,10 +257,44 @@ def _generico(t: _Tela):
     t.ell(70, 13, 82, 25, fill=BRANCO + (255,))
 
 
+def _signos(t: _Tela):
+    """Roda zodiacal: círculo com 12 marcas, estrelas e lua crescente."""
+    cx, cy = 50, 52
+    t.ell(10, 12, 90, 92, outline=BRANCO + (235,), w=2.2)
+    t.ell(20, 22, 80, 82, outline=BRANCO + (150,), w=1.2)
+    for i in range(12):
+        a = math.radians(i * 30 - 90)
+        x0, y0 = cx + 40 * math.cos(a), cy + 40 * math.sin(a)
+        x1, y1 = cx + 30 * math.cos(a), cy + 30 * math.sin(a)
+        t.line([(x0, y0), (x1, y1)], BRANCO + (200,), 1.3)
+        t.ell(x0 - 2.2, y0 - 2.2, x0 + 2.2, y0 + 2.2, fill=AMARELO + (255,))
+    # lua crescente no centro
+    t.ell(36, 38, 64, 66, fill=BRANCO + (250,))
+    t.ell(43, 34, 71, 62, fill=(0, 0, 0, 0))
+    # estrelas de quatro pontas
+    for (x, y, r) in ((86, 14, 5), (8, 78, 4), (92, 70, 3.5), (18, 10, 3)):
+        t.poly([(x, y - r), (x + r * .3, y - r * .3), (x + r, y), (x + r * .3, y + r * .3),
+                (x, y + r), (x - r * .3, y + r * .3), (x - r, y), (x - r * .3, y - r * .3)],
+               AMARELO + (255,))
+
+
+def _motivacional(t: _Tela):
+    """Escada de degraus com bandeira no topo e sol nascendo."""
+    t.ell(48, 6, 88, 46, fill=AMARELO + (235,))
+    for i in range(5):
+        x0 = 6 + i * 17
+        topo = 80 - i * 13
+        t.rect(x0, topo, x0 + 17, 92, BRANCO + (235 - i * 8,))
+        t.rect(x0, topo, x0 + 17, topo + 2.2, VERM2 + (255,))
+    # bandeira no último degrau
+    t.rect(76.5, 8, 78, 28, BRANCO + (255,))
+    t.poly([(78, 9), (92, 14), (78, 20)], VERM2 + (255,))
+
+
 _DESENHOS = {
     "transito": _transito, "alerta": _alerta, "dengue": _dengue, "saude": _saude, "clima": _clima,
     "dinheiro": _dinheiro, "emprego": _emprego, "educacao": _educacao, "agua": _agua,
-    "politica": _politica, "evento": _evento, "generico": _generico,
+    "politica": _politica, "evento": _evento, "signos": _signos, "motivacional": _motivacional, "generico": _generico,
 }
 
 
