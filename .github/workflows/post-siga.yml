@@ -1,0 +1,123 @@
+name: Post Siga (arte especial)
+
+# Arte especial "Siga o Rio Preto Diario": fundo vermelho, logo e texto grandes.
+# publicar desmarcado = so previa. Marcado = publica no Instagram.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publicar:
+        description: "PUBLICAR no Instagram (desmarcado = so previa)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: redacao
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  siga:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Configurar git
+        run: |
+          git config user.name  "redacao-bot"
+          git config user.email "redacao-bot@users.noreply.github.com"
+      - name: Gerar arte e publicar
+        env:
+          IG_TOKEN_RIO_PRETO_DIARIO: ${{ secrets.IG_TOKEN_RIO_PRETO_DIARIO }}
+          IG_USER_ID_RIO_PRETO_DIARIO: ${{ secrets.IG_USER_ID_RIO_PRETO_DIARIO }}
+          PUBLICAR: ${{ github.event.inputs.publicar }}
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import datetime
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageFont
+          from rpd import config
+          from rpd.config import carregar_conta
+          from rpd.agentes import publicador
+          from rpd.hospedagem import publicar_imagem
+
+          W, H = 1080, 1350
+          bg = Image.new("RGB", (W, H))
+          d = ImageDraw.Draw(bg)
+          for y in range(H):
+              t = y / H
+              d.line([(0, y), (W, y)], fill=(int(205 * (1 - t * 0.55)), int(22 * (1 - t)), int(34 * (1 - t))))
+          bg = bg.convert("RGBA")
+          ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+          od = ImageDraw.Draw(ov)
+          for yy in range(0, H, 34):
+              for xx in range(0, W, 34):
+                  rad = max(0, (1 - yy / H)) * 5
+                  if rad > 0.6:
+                      od.ellipse([xx - rad, yy - rad, xx + rad, yy + rad], fill=(255, 255, 255, 26))
+          bg = Image.alpha_composite(bg, ov)
+
+          def font(s):
+              f = ImageFont.truetype("assets/fonts/PlusJakartaSans.ttf", s)
+              try:
+                  f.set_variation_by_axes([800])
+              except Exception:
+                  pass
+              return f
+
+          def line(txt, top, f, fill):
+              dd = ImageDraw.Draw(bg)
+              b = dd.textbbox((0, 0), txt, font=f)
+              x = (W - (b[2] - b[0])) // 2 - b[0]
+              dd.text((x, top - b[1]), txt, font=f, fill=fill)
+              return b[3] - b[1]
+
+          logo = Image.open("assets/rio_preto_diario/logo.png").convert("RGBA")
+          lw = 680
+          logo = logo.resize((lw, int(logo.height * lw / logo.width)))
+          bg.alpha_composite(logo, ((W - lw) // 2, 40))
+          y = 40 + logo.height + 10
+          y += line("SIGA", y, font(200), (255, 255, 255)) + 22
+          y += line("PARA SABER TUDO DE", y, font(70), (255, 255, 255)) + 34
+          for t, c in [("RIO PRETO", (255, 214, 0)), ("REGIÃO", (255, 255, 255)), ("E BRASIL", (255, 214, 0))]:
+              y += line(t, y, font(128), c) + 20
+          y += 18
+          dd = ImageDraw.Draw(bg)
+          bw, bh = 720, 108
+          bx = (W - bw) // 2
+          dd.rounded_rectangle([bx, y, bx + bw, y + bh], radius=54, fill=(255, 255, 255))
+          fb = font(52)
+          txt = "TOQUE EM SEGUIR  →"
+          b = dd.textbbox((0, 0), txt, font=fb)
+          dd.text(((W - (b[2] - b[0])) // 2 - b[0], y + (bh - (b[3] - b[1])) // 2 - b[1]), txt, font=fb, fill=(190, 18, 30))
+          y += bh + 24
+          line("@riopretodiario", y, font(40), (255, 255, 255))
+
+          arq = config.RAIZ / "publicacoes" / "manual" / ("siga-" + datetime.now().strftime("%d%H%M%S") + ".jpg")
+          arq.parent.mkdir(parents=True, exist_ok=True)
+          bg.convert("RGB").save(arq, quality=92)
+          conta = carregar_conta("rio_preto_diario")
+          url = publicar_imagem(arq, "manual")
+          print("Previa da arte:", url)
+          legenda = "\n".join([
+              "📲 Siga o @riopretodiario e acompanhe todos os dias as notícias de Rio Preto, da região e do Brasil.",
+              "",
+              "📍 Prefeitura, saúde, trânsito, emprego, serviços e utilidade pública.",
+              "🇧🇷 O que acontece no país e afeta o seu dia a dia, com a fonte sempre citada.",
+              "✅ Informação direta, sem opinião e sem exagero.",
+              "",
+              "👉 Toque em Seguir e ative as notificações para não perder nada.",
+          ])
+          if os.environ.get("PUBLICAR", "false") == "true":
+              ig = publicador.publicar(conta, url, legenda, "Arte vermelha com a logo do Rio Preto Diário e o texto: Siga para saber tudo de Rio Preto, região e Brasil")
+              print(f"📲 PUBLICADO no Instagram: id {ig}")
+          else:
+              print("Só prévia: nada foi publicado.")
+          PY
